@@ -4,6 +4,7 @@ import os
 import sys
 
 import email_handler
+from classifier import Classifier
 
 # class Mail:
 #     def __init__(self, email_id, email, email_text, sender):
@@ -66,6 +67,8 @@ while not work_dir:
 
 logging.info(f"Запуск программы обработки и перемещения в папке: {work_dir} ")
 
+classifier = Classifier()
+
 while True:
     try:
         files=os.listdir(work_dir)
@@ -86,7 +89,20 @@ while True:
 
     #||||||||||||
     target_dir="" #здесь получаем путь перемещения после обработки файла
+    classifier = Classifier()
+    try:
+        target_dir = classifier.handle_mail(work_path)
+
+    except FileNotFoundError as e:
+        print(f"Ошибка: {e}")
+    except PermissionError as e:
+        print(f"Ошибка: {e}")
+
+    #exit(0)
+    #continue
     #||||||||||||
+
+    os.makedirs(target_dir, exist_ok=True)
 
     """
     Если решим, что будем создавать папку на ходу
