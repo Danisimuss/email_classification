@@ -3,35 +3,20 @@ import shutil
 import os
 import sys
 
-import email_handler
 from classifier import Classifier
 
-# class Mail:
-#     def __init__(self, email_id, email, email_text, sender):
-#         self.mail_id = email_id
-#         self.email = email
-#         self.mail_text = email_text
-#         self.sender = sender
-#         self.classification = "unknown"
-# #   def email_classification(self): будет реализованно позже
 
 
 
-
-# for num in range(1, 101):
-#     email = email_handler.email_getter(num)
-#     email_sender = email_handler.get_sender(email)
-#     email_text = email_handler.get_text_email(email)
-#     email = Mail(num, email, email_text, email_sender)
-
-
-
-
+os.makedirs('logs',exist_ok=True)
 logging.basicConfig(        #настройки для логов, ошибки и информация в файл и терминал
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
-    stream=sys.stdout
+    handlers=[
+        logging.FileHandler('logs/app.log', encoding='utf-8', mode='a'),
+        logging.StreamHandler(sys.stdout)
+    ]
 )
 
 work_dir=''
@@ -43,7 +28,7 @@ if len(sys.argv)>1:
         work_dir=potential_work_dir
         logging.info('Передан путь к обрабатываемой папке')
     else:
-        logging.warning("Путь {potential_work_dir} не является папкой или не существует")
+        logging.warning(f"Путь {potential_work_dir} не является папкой или не существует")
         
 
 #Если передан некорректный аргумент через bash или запуск напрямую, запускаем цикл опроса
@@ -64,6 +49,7 @@ while not work_dir:
     else:
         print(f"Ошибка: Путь {u_input} не найден или не папка")
 
+work_dir=os.path.abspath(work_dir)
 
 logging.info(f"Запуск программы обработки и перемещения в папке: {work_dir} ")
 
@@ -71,53 +57,56 @@ classifier = Classifier()
 keywords_file = "keywords.json"
 classifier.load_keywords(keywords_file)
 
-while True:
-    try:
-        files=os.listdir(work_dir)
-    except FileNotFoundError:
-        logging.error(f"Ошибка: Обрабатываемая папка по пути {work_dir} не найдена!")
-        break
+SUPPORTED_EXTENSIONS={'.txt'}
+
+try:
+    files=os.listdir(work_dir)
+except FileNotFoundError:
+    logging.error(f"Ошибка: Обрабатываемая папка по пути {work_dir} не найдена!")
+    sys.exit(1)
+
+files = [f for f in files if os.path.isfile(os.path.join(work_dir, f))]
+if not files:
+    logging.info("Папка пуста. Завершаю работу")
+    sys.exit(0)
+
+logging.info(f"Найдено {len(files)} фалов для обработки")
+
+
+
+for file in files:
     
-    if not files:
-        logging.info("Папка пуста. Завершаю работу")
-        break
-
-    file=files[0]
-    work_path=os.path.join(work_dir,file)  #Собирает абсолютный путь к обрабатываемому файлу вне зависимости от операционной системы
+    work_path=os.path.join(work_dir,file)  #Собирает абсолютный путь к обрабатываемому файлу вне зависимости от операционной системы 
     
-    if os.path.isdir(work_path):
-        logging.warning(f"Пропущена папка: {file}") #Если нашли папку, пропускаем
-        continue
+    _,ext=os.path.splitext(file.lower())
 
-    #||||||||||||
-    target_dir="" #здесь получаем путь перемещения после обработки файла
+    if ext not in SUPPORTED_EXTENSIONS:
+        target_dir='Неподдерживаемое расширение'
+        logging.info(f'Файл {file} имеет неподдерживаемый формат')
+    
+    else:
 
-    try:
-        target_dir = classifier.handle_mail(work_path)
+        try:
+            target_dir = classifier.handle_mail(work_path)
 
-    except FileNotFoundError as e:
-        print(f"Ошибка: {e}")
-    except PermissionError as e:
-        print(f"Ошибка: {e}")
+        except Exception as e:
+            logging.error(f"Ошибка с файлом {file} :{e}")
+            target_dir = 'Несортированное'
+        
+        if target_dir in ('', None,'Ошибка файла','Несортированное'):
+            target_dir='Несортированное'
 
-    #exit(0)
-    #continue
-    #||||||||||||
-
-    os.makedirs(target_dir, exist_ok=True)
-
-    """
-    Если решим, что будем создавать папку на ходу
-    os.makedirs(name,exist_ok=True) #Параметр говорит, если папка уже существует не бросай исключение
-    """
-
+        #exit(0)
+        #continue
+    
+    os.makedirs(target_dir, exist_ok=True) # создаем папку на ходу
     target_path=os.path.join(target_dir,file) #Собирает целевой абсолютный путь куда переместить файл вне зависимости от операционной системы
 
     try:
         shutil.move(work_path,target_path)
         logging.info(f"{file} перемещен в {target_dir}")
+    except Exception as e:
+        logging.exception(f"Ошибка при попытке перемещения с файлом {file}: {e}")
+        continue
 
-    except Exception:
-        logging.exception(f"Ошибка при попытке перемещения с файлом {file}: {Exception}")
-        break
-
+logging.info("Обработка всех файлов выполнена")

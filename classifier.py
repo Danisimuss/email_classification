@@ -2,11 +2,11 @@ import re
 import os
 import pymorphy3
 import json
+import logging
 
+logger = logging.getLogger(__name__)
 
 class Classifier:
-
-
 
     def __lemm_one_word(self, word):
         try:
@@ -34,7 +34,7 @@ class Classifier:
 
 
 
-    def default_keywords(self):
+    def default_keywords(self): #Если удалить, упадут тесты
         self.categories = ['Черновик', 'Спам', 'Важное', 'Уведомления', 'Работа']
         self.tag_words = {
             'Черновик': [
@@ -64,11 +64,13 @@ class Classifier:
             if not os.path.exists(json_path):
                 raise FileNotFoundError('Файл не существует')
             
+            
             with open(json_path, 'r', encoding='utf-8') as file:
                 self.tag_words = json.load(file)
             
             if not self.tag_words:
                 raise ValueError("Пустой или повреждённый файл json")
+            
         
             for category in self.tag_words:
                 for i in range(len(self.tag_words[category])):
@@ -89,15 +91,15 @@ class Classifier:
                 return text
                 
         except FileNotFoundError:
-            print(f"Файл {filename} не найден.")
+            logger.error(f"Файл {path} не найден.")
         except PermissionError:
-            print("У вас нет прав на доступ к файлу.")
+            logger.error("У вас нет прав на доступ к файлу.")
         except ValueError:
-            print("Неверный формат данных.")
+            logger.error("Неверный формат данных.")
         except IOError as e:
-            print(f"Произошла ошибка ввода-вывода: {e}.")
+            logger.error(f"Произошла ошибка ввода-вывода: {e}.")
         except Exception as e:
-            print(f"Произошла непредвиденная ошибка: {e}.")
+            logger.error(f"Произошла непредвиденная ошибка: {e}.")
         
         return None
 
@@ -147,8 +149,10 @@ class Classifier:
 
     def handle_mail(self, path):
         text = self.__get_text_from_file(path)
-        if not text:
+        if text is None:
             return 'Ошибка файла'
+        #if text.strip()=='':
+            #return 'Черновик' #если пустой файл черновик
 
         return self.__get_mail_category(text)
         
