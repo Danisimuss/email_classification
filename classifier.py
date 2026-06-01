@@ -3,6 +3,7 @@ import os
 import pymorphy3
 import json
 
+category_stats = [0,0,0,0,0,0,0]
 
 class Classifier:
 
@@ -98,7 +99,7 @@ class Classifier:
             print(f"Произошла ошибка ввода-вывода: {e}.")
         except Exception as e:
             print(f"Произошла непредвиденная ошибка: {e}.")
-        
+        category_stats[5] += 1
         return None
 
 
@@ -139,8 +140,9 @@ class Classifier:
                 maxi = i
 
         if max1 == 0:
+            category_stats[6] += 1
             return 'Несортированное'
-        
+        category_stats[maxi] += 1
         return  self.categories[maxi]
 
 
