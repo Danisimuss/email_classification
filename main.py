@@ -5,6 +5,7 @@ import sys
 
 import email_handler
 from classifier import Classifier
+from data_analysis import analysis
 
 # class Mail:
 #     def __init__(self, email_id, email, email_text, sender):
@@ -120,4 +121,5 @@ while True:
     except Exception:
         logging.exception(f"Ошибка при попытке перемещения с файлом {file}: {Exception}")
         break
-
+        
+analysis(category_stats)
