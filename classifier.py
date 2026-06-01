@@ -90,7 +90,7 @@ class Classifier:
                 return text
                 
         except FileNotFoundError:
-            print(f"Файл {filename} не найден.")
+            print(f"Файл {path} не найден.")
         except PermissionError:
             print("У вас нет прав на доступ к файлу.")
         except ValueError:
