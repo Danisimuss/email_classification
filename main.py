@@ -68,6 +68,8 @@ while not work_dir:
 logging.info(f"Запуск программы обработки и перемещения в папке: {work_dir} ")
 
 classifier = Classifier()
+keywords_file = "keywords.json"
+classifier.load_keywords(keywords_file)
 
 while True:
     try:
@@ -89,7 +91,7 @@ while True:
 
     #||||||||||||
     target_dir="" #здесь получаем путь перемещения после обработки файла
-    classifier = Classifier()
+
     try:
         target_dir = classifier.handle_mail(work_path)
 
