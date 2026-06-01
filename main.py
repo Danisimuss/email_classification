@@ -72,6 +72,15 @@ classifier = Classifier()
 keywords_file = "keywords.json"
 classifier.load_keywords(keywords_file)
 
+category_stats = {
+    'Ошибка файла': 0,
+    'Несортированное': 0
+}
+
+for category in classifier.categories:
+    category_stats[category] = 0
+
+
 while True:
     try:
         files=os.listdir(work_dir)
@@ -96,13 +105,14 @@ while True:
     try:
         target_dir = classifier.handle_mail(work_path)
 
+        if target_dir in category_stats:
+            category_stats[target_dir] += 1
+        
     except FileNotFoundError as e:
         print(f"Ошибка: {e}")
     except PermissionError as e:
         print(f"Ошибка: {e}")
 
-    #exit(0)
-    #continue
     #||||||||||||
 
     os.makedirs(target_dir, exist_ok=True)

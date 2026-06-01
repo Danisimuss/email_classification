@@ -3,8 +3,6 @@ import os
 import pymorphy3
 import json
 
-category_stats = [0,0,0,0,0,0,0]
-
 class Classifier:
 
 
@@ -99,7 +97,6 @@ class Classifier:
             print(f"Произошла ошибка ввода-вывода: {e}.")
         except Exception as e:
             print(f"Произошла непредвиденная ошибка: {e}.")
-        category_stats[5] += 1
         return None
 
 
@@ -129,6 +126,8 @@ class Classifier:
         
         #-------
         #  Тут раздать веса разным категориям
+        if 'Черновик' in self.categories:
+            result[self.categories.index('Черновик')] *= 2
         #-------
 
         max1 = 0
@@ -140,11 +139,9 @@ class Classifier:
                 maxi = i
 
         if max1 == 0:
-            category_stats[6] += 1
             return 'Несортированное'
-        category_stats[maxi] += 1
+        
         return  self.categories[maxi]
-
 
 
     def handle_mail(self, path):
