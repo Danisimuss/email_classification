@@ -3,6 +3,7 @@ import os
 import pymorphy3
 import json
 import logging
+from transliterate import translit 
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +18,17 @@ class Classifier:
 
 
     def __prepare_text(self, text):
+        
         text = text.lower()
-        words = re.findall(r'\b[а-яёa-z]+\b', text)
+        words = re.findall(r'\b[а-яё]+\b|\b[a-z]+\b', text)
         res = []
         for word in words:
+            if re.fullmatch(r'[a-z]+',word):
+                try:
+                    word=translit(word,'ru')
+                except Exception:
+                    logger.debug("Транслитерация не выполнена, обработка без неё")
+                    pass
             res.append(self.__lemm_one_word(word))
 
         return ' '.join(res)

@@ -2,6 +2,7 @@ import logging
 import shutil
 import os
 import sys
+import mimetypes
 
 from classifier import Classifier
 
@@ -57,7 +58,6 @@ classifier = Classifier()
 keywords_file = "keywords.json"
 classifier.load_keywords(keywords_file)
 
-SUPPORTED_EXTENSIONS={'.txt'}
 
 try:
     files=os.listdir(work_dir)
@@ -78,12 +78,23 @@ for file in files:
     
     work_path=os.path.join(work_dir,file)  #Собирает абсолютный путь к обрабатываемому файлу вне зависимости от операционной системы 
     
-    _,ext=os.path.splitext(file.lower())
+    mime_type,_=mimetypes.guess_type(work_path)
 
-    if ext not in SUPPORTED_EXTENSIONS:
-        target_dir='Неподдерживаемое расширение'
-        logging.info(f'Файл {file} имеет неподдерживаемый формат')
+    is_text=mime_type and mime_type.startswith('text/')
     
+    if not is_text:
+        try:
+            with open(work_path, 'r', encoding='utf-8') as f:
+                f.read(512)         #Пробуем прочитать первые 512 символов как UTF-8
+                logging.info(f"Mime {file} неизвестен, пробую прочитать")
+            is_text=True
+        except (UnicodeDecodeError, IOError):
+            is_text = False
+            logging.info(f"Посе прочтения не удалось проверить что {file} поддерживаемый")
+    if not is_text:
+        target_dir='Неподдерживаемый формат'
+        logging.info(f'Пропущен неподдерживаемый файл: {file}')
+
     else:
 
         try:
@@ -106,7 +117,7 @@ for file in files:
         shutil.move(work_path,target_path)
         logging.info(f"{file} перемещен в {target_dir}")
     except Exception as e:
-        logging.exception(f"Ошибка при попытке перемещения с файлом {file}: {e}")
+        logging.exception(f"Ошибка при попытке перемещения файла {file}: {e}")
         continue
 
 logging.info("Обработка всех файлов выполнена")
