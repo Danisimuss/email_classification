@@ -12,6 +12,7 @@ echo "ЗАПУСК СКРИПТА: $(get_ts)"
 echo "Текущая рабочая директория: $PWD"
 echo "=========================================="
 
+echo "Проверка наличия Python"
 #Проверка наличия Python
 if ! command -v python3 &> /dev/null; then
     echo "Python 3 не найден в системе."
@@ -19,6 +20,7 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
+echo "Проверка наличия pip"
 #Проверка наличия pip
 if ! python3 -m pip --version &> /dev/null; then
     echo "Менеджер пакетов pip не найден для Python 3."
@@ -26,6 +28,7 @@ if ! python3 -m pip --version &> /dev/null; then
     exit 1
 fi
 
+echo "Проверка наличия requirements.txt"
 #Проверка наличия requirements.txt
 if [ ! -f "requirements.txt" ]; then
     echo "Файл requirements.txt не найден, без него работа программы не гарантирована"
