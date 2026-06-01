@@ -146,8 +146,12 @@ class Classifier:
 
     def handle_mail(self, path):
         text = self.__get_text_from_file(path)
-        if not text:
+
+        if text is None:
             return 'Ошибка файла'
+        
+        if text.strip()=='':
+            return 'Черновик' #если пустой файл черновик
 
         return self.__get_mail_category(text)
         
