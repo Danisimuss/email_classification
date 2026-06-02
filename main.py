@@ -100,7 +100,7 @@ for file in files:
             is_text=True
         except (UnicodeDecodeError, IOError):
             is_text = False
-            logging.info(f"Посе прочтения не удалось проверить что {file} поддерживаемый")
+            logging.info(f"После прочтения не удалось проверить что {file} поддерживаемый")
     if not is_text:
         target_dir='Неподдерживаемый формат'
         logging.info(f'Пропущен неподдерживаемый файл: {file}')

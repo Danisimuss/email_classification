@@ -57,7 +57,7 @@ def test_unsupported_extension(classifier, temp_file):
 #Файл с неизвестным расширением
     path = temp_file('срочно', ext='.xyz')
     result = classifier.handle_mail(path)
-    assert isinstance(result, str)  # Возвращает строку, а не исключение
+    assert isinstance(result, str)  
 
 
 #сложные тесты
