@@ -2,12 +2,16 @@ import re
 import os
 import pymorphy3
 import json
+
 import logging
 from transliterate import translit 
 
 logger = logging.getLogger(__name__)
 
+
 class Classifier:
+
+
 
     def __lemm_one_word(self, word):
         try:
@@ -18,7 +22,6 @@ class Classifier:
 
 
     def __prepare_text(self, text):
-        
         text = text.lower()
         words = re.findall(r'\b[а-яё]+\b|\b[a-z]+\b', text)
         res = []
@@ -42,7 +45,7 @@ class Classifier:
 
 
 
-    def default_keywords(self): #Если удалить, упадут тесты
+    def default_keywords(self):
         self.categories = ['Черновик', 'Спам', 'Важное', 'Уведомления', 'Работа']
         self.tag_words = {
             'Черновик': [
@@ -72,13 +75,11 @@ class Classifier:
             if not os.path.exists(json_path):
                 raise FileNotFoundError('Файл не существует')
             
-            
             with open(json_path, 'r', encoding='utf-8') as file:
                 self.tag_words = json.load(file)
             
             if not self.tag_words:
                 raise ValueError("Пустой или повреждённый файл json")
-            
         
             for category in self.tag_words:
                 for i in range(len(self.tag_words[category])):
@@ -138,6 +139,8 @@ class Classifier:
         
         #-------
         #  Тут раздать веса разным категориям
+        if 'Черновик' in self.categories:
+            result[self.categories.index('Черновик')] *= 2
         #-------
 
         max1 = 0
@@ -154,13 +157,14 @@ class Classifier:
         return  self.categories[maxi]
 
 
-
     def handle_mail(self, path):
         text = self.__get_text_from_file(path)
+
         if text is None:
             return 'Ошибка файла'
-        #if text.strip()=='':
-            #return 'Черновик' #если пустой файл черновик
+        
+        if text.strip()=='':
+            return 'Черновик' #если пустой файл черновик
 
         return self.__get_mail_category(text)
         

@@ -4,7 +4,8 @@ import os
 import sys
 import mimetypes
 
-from classifier import Classifier
+from src.classifier import Classifier
+from src.data_analysis import analysis
 
 
 
@@ -55,8 +56,17 @@ work_dir=os.path.abspath(work_dir)
 logging.info(f"Запуск программы обработки и перемещения в папке: {work_dir} ")
 
 classifier = Classifier()
-keywords_file = "keywords.json"
+keywords_file = "config/keywords.json"
 classifier.load_keywords(keywords_file)
+
+category_stats = {
+    'Неподдерживаемый формат': 0,
+    'Несортированное': 0
+}
+for category in classifier.categories:
+    category_stats[category] = 0
+
+
 
 
 try:
@@ -107,8 +117,8 @@ for file in files:
         if target_dir in ('', None,'Ошибка файла','Несортированное'):
             target_dir='Несортированное'
 
-        #exit(0)
-        #continue
+    if target_dir in category_stats:
+        category_stats[target_dir] += 1
     
     os.makedirs(target_dir, exist_ok=True) # создаем папку на ходу
     target_path=os.path.join(target_dir,file) #Собирает целевой абсолютный путь куда переместить файл вне зависимости от операционной системы
@@ -121,3 +131,5 @@ for file in files:
         continue
 
 logging.info("Обработка всех файлов выполнена")
+
+analysis(category_stats)
